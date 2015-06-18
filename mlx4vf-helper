@@ -1,0 +1,98 @@
+#!/bin/bash
+# The MIT License (MIT)
+#
+# Copyright (c) 2015 StorPool Storage AD
+#
+# Permission is hereby granted, free of charge, to any person obtaining a copy
+# of this software and associated documentation files (the "Software"), to deal
+# in the Software without restriction, including without limitation the rights
+# to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+# copies of the Software, and to permit persons to whom the Software is
+# furnished to do so, subject to the following conditions:
+#
+# The above copyright notice and this permission notice shall be included in all
+# copies or substantial portions of the Software.
+#
+# THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+# IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+# FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+# AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+# LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+# OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+# SOFTWARE.
+#
+
+#---------------------------------------------------------------------------
+# This file should be placed in /sbin/
+#
+# It should be called after the master interface is up.
+# The CentOS way is via /sbin/ifup-local by adding this line:
+# [ -x /sbin/mlx4vf-helper ] && /sbin/mlx4vf-helper "$1"
+#
+# The debian way is to add post-up directive to master config:
+# post-up /sbin/mlx4vf-helper $IFACE
+#
+
+set -e
+
+me=${0##*/}
+
+if [ "$1" = "" ]; then
+    echo "Usage: $me <interfaceName>"
+    echo
+    exit 1
+fi
+
+export PATH=/bin:/sbin:/usr/bin:/usr/sbin:$PATH
+
+# Enable VF interface renaming
+#
+# Default is enabled
+VFRENAME=1
+
+# Before renamig the interface is set down.
+# Uncomment the following to bring the interface back up after rename
+#VF_UP_AFTER_RENAME=1
+
+function splog()
+{
+	logger -t "${0##*/}" "$*"
+}
+
+function createVFNAME()
+{
+	VFNAME_TEMPLATE=${VFNAME_TEMPLATE:-_PFNAME__vf_VFID_}
+	VFNAME="${VFNAME_TEMPLATE//_PFNAME_/$PFNAME}"
+	VFNAME="${VFNAME//_VFID_/$VFID}"
+}
+
+[ -f "/etc/${me}.conf" ] && source "/etc/${me}.conf"
+
+PFNAME="$1"
+
+if [ -d "/sys/class/net/${PFNAME}/device/virtfn0/net" ]; then
+	PHYS_PORT_ID=$(</sys/class/net/${PFNAME}/phys_port_id)
+	for VFID in {0..63}; do
+		if [ -L "/sys/class/net/${PFNAME}/device/virtfn${VFID}" ]; then
+			if [ -d "/sys/class/net/${PFNAME}/device/virtfn${VFID}/net" ]; then
+				for phys in $(cd "/sys/class/net/${PFNAME}/device/virtfn${VFID}/net" && grep $PHYS_PORT_ID */phys_port_id); do
+					VFOLD="${phys%/*}"
+					VFMAC="$(</sys/class/net/${VFOLD}/address)"
+					createVFNAME
+					eval "VFVLAN=\${${VFNAME}_VLAN}"
+					ip link set "$PFNAME" vf "$VFID" mac ${VFMAC}${VFVLAN:+ vlan $VFVLAN} #&>/dev/null
+					if [ -n "$VFRENAME" ] && [ "$VFOLD" != "$VFNAME" ]; then
+						ip link set "$VFOLD" down && \
+						ip link set "$VFOLD" name "${VFNAME}" && \
+						[ -n "$VF_UP_AFTER_RENAME" ] && ip link set "${VFNAME}" up
+						echo "$VFNAME MAC ${VFMAC}${VFVLAN:+ VLAN $VFVLAN}" >&2
+					else
+						echo "$VFOLD MAC ${VFMAC}${VFVLAN:+ VLAN $VFVLAN}" >&2
+					fi
+				done
+			fi
+		else
+			break;
+		fi
+	done
+fi
