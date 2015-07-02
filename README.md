@@ -29,6 +29,25 @@ Add the following line in the configuration of the primary interface (/etc/netwo
 post-up /sbin/mlx4vf-helper $IFACE
 ```
 
+## Known issues
+
+The BIOS might not inform the running kernel for SRIOV support. A workaround is to add `intel_iommu=on` on the kernel cmdline.
+
+In case there is messages as the following in `dmesg`:
+
+```
+[    0.000000] ACPI: INT_SRC_OVR (bus 0 bus_irq 0 global_irq 2 dfl dfl)
+[    0.000000] ACPI: INT_SRC_OVR (bus 0 bus_irq 9 global_irq 9 high level)
+...
+[53173.315232] mlx4_core 0000:01:00.0: Enabling SR-IOV with 2 VFs
+[53173.315298] mlx4_core 0000:01:00.0: not enough MMIO resources for SR-IOV
+[53173.315315] mlx4_core 0000:01:00.0: Failed to enable SR-IOV, continuing without SR-IOV (err = -12)
+```
+
+this is an indication that the BIOS is not allocating resources for SRIOV. 
+
+A workaround is to add also `pci=realloc` at kernel cmdline.
+
 ## Configuration
 ### Interface naming
 **VFRENAME** 
