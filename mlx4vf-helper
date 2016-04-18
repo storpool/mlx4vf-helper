@@ -66,7 +66,9 @@ function createVFNAME()
 	VFNAME="${VFNAME//_VFID_/$VFID}"
 }
 
-[ -f "/etc/${me}.conf" ] && source "/etc/${me}.conf"
+if [ -f "/etc/${me}.conf" ]; then
+	source "/etc/${me}.conf"
+fi
 
 PFNAME="$1"
 
@@ -84,7 +86,9 @@ if [ -d "/sys/class/net/${PFNAME}/device/virtfn0/net" ]; then
 					if [ -n "$VFRENAME" ] && [ "$VFOLD" != "$VFNAME" ]; then
 						ip link set "$VFOLD" down && \
 						ip link set "$VFOLD" name "${VFNAME}" && \
-						[ -n "$VF_UP_AFTER_RENAME" ] && ip link set "${VFNAME}" up
+						if [ -n "$VF_UP_AFTER_RENAME" ]; then
+							ip link set "${VFNAME}" up
+						fi
 						echo "$VFNAME MAC ${VFMAC}${VFVLAN:+ VLAN $VFVLAN}" >&2
 					else
 						echo "$VFOLD MAC ${VFMAC}${VFVLAN:+ VLAN $VFVLAN}" >&2
