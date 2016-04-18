@@ -88,7 +88,7 @@ eth2_vf1_VLAN=42
 
  The MIT License (MIT)
 
- Copyright (c) 2015 StorPool Storage AD
+ Copyright (c) 2015-2016 StorPool Storage AD
 
  Permission is hereby granted, free of charge, to any person obtaining a copy
  of this software and associated documentation files (the "Software"), to deal
