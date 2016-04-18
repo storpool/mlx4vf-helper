@@ -75,7 +75,7 @@ if [ -d "/sys/class/net/${PFNAME}/device/virtfn0/net" ]; then
 	for VFID in {0..63}; do
 		if [ -L "/sys/class/net/${PFNAME}/device/virtfn${VFID}" ]; then
 			if [ -d "/sys/class/net/${PFNAME}/device/virtfn${VFID}/net" ]; then
-				for phys in $(cd "/sys/class/net/${PFNAME}/device/virtfn${VFID}/net" && grep $PHYS_PORT_ID */phys_port_id); do
+				for phys in $(cd "/sys/class/net/${PFNAME}/device/virtfn${VFID}/net" && grep -l $PHYS_PORT_ID */phys_port_id 2>/dev/null); do
 					VFOLD="${phys%/*}"
 					VFMAC="$(</sys/class/net/${VFOLD}/address)"
 					createVFNAME
