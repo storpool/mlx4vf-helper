@@ -9,6 +9,8 @@ $ cd mlx4vf-helper
 $ sudo cp mlx4vf-helper /sbin/
 $ sudo cp mlx4vf-helper.conf /etc/
 ```
+
+
 ## Usage
 ```
 mlx4vf-helper {interfaceName}
@@ -44,7 +46,7 @@ In case there is messages as the following in `dmesg`:
 [53173.315315] mlx4_core 0000:01:00.0: Failed to enable SR-IOV, continuing without SR-IOV (err = -12)
 ```
 
-this is an indication that the BIOS is not allocating resources for SRIOV. 
+This is an indication that the BIOS is not allocating resources for SRIOV.
 
 A workaround is to add also `pci=realloc` at kernel cmdline.
 
@@ -59,11 +61,11 @@ echo "options mlx4_core num_vfs=1 probe_vf=1" >/etc/modpfobe.d/mlx4_core.conf
 ```
 
 ### Interface naming
-**VFRENAME** 
+**VFRENAME**
 *Default*: VFRENAME=1
 Rename the VF interfaces using the following tmplate. (set to empty string to disable renaming)
 
-**VFNAME_TEMPLATE** 
+**VFNAME_TEMPLATE**
 *Default*: VFNAME\_TEMPLATE="\_PFNAME__vf_VFID_"
 \_PFNAME_ - name of the primary interface
 \_VFID_ - ID of the VF
