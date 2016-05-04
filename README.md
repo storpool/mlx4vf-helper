@@ -75,7 +75,7 @@ For example the if there are 2 VF on eth2, their names will be ***eth2_vf0*** an
 *Default*: (unset)
 When VF interface renaming is set, we are bringing down the interface before renaming it. If this variable is set to anything the new interface will be set to up.
 
-### vf VLAN setup
+### Configure vf VLAN (optional)
 **{vfname}\_VLAN**
 Set VLAN ID to the given VF interface.
 For example on the above setup of two VF on eth2 to have vlans 24 and 42:
@@ -83,6 +83,12 @@ For example on the above setup of two VF on eth2 to have vlans 24 and 42:
 eth2_vf0_VLAN=24
 eth2_vf1_VLAN=42
 ```
+
+### StorPool extras
+When used with combination with StorPool the VF interface MAC address will be changed to follwing template
+
+*02:42:<sp_net_idx>:<vf_idx>:<SP_OURID_high_bits>:<SP_OURID_low_bits>*
+
 
 # Copyright
 
