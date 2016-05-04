@@ -89,9 +89,9 @@ if [ -d "/sys/class/net/${PFNAME}/device/virtfn0/net" ]; then
 						if [ -n "$VF_UP_AFTER_RENAME" ]; then
 							ip link set "${VFNAME}" up
 						fi
-						echo "$VFNAME MAC ${VFMAC}${VFVLAN:+ VLAN $VFVLAN}" >&2
+						splog "$VFNAME MAC ${VFMAC}${VFVLAN:+ VLAN $VFVLAN}"
 					else
-						echo "$VFOLD MAC ${VFMAC}${VFVLAN:+ VLAN $VFVLAN}" >&2
+						splog "$VFOLD MAC ${VFMAC}${VFVLAN:+ VLAN $VFVLAN}"
 					fi
 				done
 			fi
