@@ -66,9 +66,27 @@ function createVFNAME()
 	VFNAME="${VFNAME//_VFID_/$VFID}"
 }
 
+function tweakVFMAC()
+{
+	if [ -n "$SP_OURID" ]; then
+		for i in ${!INTERFACES[@]}; do
+			if [ "${INTERFACES[i]}" = "$VFNAME" ]; then
+				printf -v VFMAC "02:42:%02x:%02x:%02x:%02x" "$((224+i))" "$VFID" "$((SP_OURID/256))" "$((SP_OURID%256))"
+				break
+			fi
+		done
+	fi
+}
+
 if [ -f "/etc/${me}.conf" ]; then
 	source "/etc/${me}.conf"
 fi
+
+if [ -x /usr/sbin/storpool_confget ]; then
+	eval `/usr/sbin/storpool_confget -S`
+fi
+
+INTERFACES=(${SP_IFACE//,/ })
 
 PFNAME="$1"
 
@@ -81,6 +99,7 @@ if [ -d "/sys/class/net/${PFNAME}/device/virtfn0/net" ]; then
 					VFOLD="${phys%/*}"
 					VFMAC="$(</sys/class/net/${VFOLD}/address)"
 					createVFNAME
+					tweakVFMAC
 					eval "VFVLAN=\${${VFNAME}_VLAN}"
 					ip link set "$PFNAME" vf "$VFID" mac ${VFMAC}${VFVLAN:+ vlan $VFVLAN} #&>/dev/null
 					if [ -n "$VFRENAME" ] && [ "$VFOLD" != "$VFNAME" ]; then
