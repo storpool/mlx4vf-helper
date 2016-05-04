@@ -96,7 +96,7 @@ if [ -d "/sys/class/net/${PFNAME}/device/virtfn0/net" ]; then
 				done
 			fi
 		else
-			break;
+			break
 		fi
 	done
 fi
