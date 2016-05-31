@@ -71,6 +71,7 @@ function tweakVFMAC()
 	if [ -n "$SP_OURID" ]; then
 		for i in ${!INTERFACES[@]}; do
 			if [ "${INTERFACES[i]}" = "$VFNAME" ]; then
+				VFOLDMAC=$VFMAC
 				printf -v VFMAC "02:42:%02x:%02x:%02x:%02x" "$((224+i))" "$VFID" "$((SP_OURID/256))" "$((SP_OURID%256))"
 				break
 			fi
@@ -105,6 +106,12 @@ if [ -d "/sys/class/net/${PFNAME}/device/virtfn0/net" ]; then
 					if [ -n "$VFRENAME" ] && [ "$VFOLD" != "$VFNAME" ]; then
 						ip link set "$VFOLD" down && \
 						ip link set "$VFOLD" name "${VFNAME}" && \
+						if [ "$VFOLDMAC" != "$VFMAC" ]; then
+							ip link set "$VFNAME" address "$VFMAC"
+							if [ $? -ne 0 ]; then
+								splog "$VFNAME MAC $VFMAC change failed! old MAC:$VFOLDMAC"
+							fi
+						fi
 						if [ -n "$VF_UP_AFTER_RENAME" ]; then
 							ip link set "${VFNAME}" up
 						fi
