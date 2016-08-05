@@ -53,11 +53,19 @@ A workaround is to add also `pci=realloc` at kernel cmdline.
 ## Configuration
 
 ### Kernel module
-To enable the Virtual Function interfaces on Mellanox NIC create kernel module configuration file`/etc/modprobe.d/mlx4_core.conf` 
+To enable the Virtual Function interfaces on Mellanox NIC create kernel module configuration file`/etc/modprobe.d/mlx4_core.conf`
 and pass `num_vf` and `probe_vf` variables. For details check the kernel module arguments with `modinfo`.
 For example to create one VF interface on the first port:
 ```bash
 echo "options mlx4_core num_vfs=1 probe_vf=1" >/etc/modpfobe.d/mlx4_core.conf
+```
+For 2 port NIC with 4 VFs on each
+```bash
+echo "options mlx4_core probe_vf=4,4 num_vfs=4,4" >/etc/modpfobe.d/mlx4_core.conf
+```
+For 4 port NIC with 4 VFs on each
+```bash
+echo "options mlx4_core probe_vf=4,4,4,4 num_vfs=4,4,4,4" >/etc/modpfobe.d/mlx4_core.conf
 ```
 
 ### Interface naming
