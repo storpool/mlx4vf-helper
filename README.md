@@ -21,7 +21,7 @@ Create /sbin/ifup-local and place following lines
 sudo cat >>/sbin/ifup-local <<EOF
 #!/bin/bash
 
-[ -x /sbin/mlx4vf-helper ] && /sbin/mlx4vf-helper "$1"
+[ -x /sbin/mlx4vf-helper ] && /sbin/mlx4vf-helper "\$1"
 EOF
 chmod a+x /sbin/ifup-local
 ```
