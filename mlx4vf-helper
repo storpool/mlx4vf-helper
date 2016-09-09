@@ -64,6 +64,7 @@ function createVFNAME()
 	VFNAME_TEMPLATE=${VFNAME_TEMPLATE:-_PFNAME__vf_VFID_}
 	VFNAME="${VFNAME_TEMPLATE//_PFNAME_/$PFNAME}"
 	VFNAME="${VFNAME//_VFID_/$VFID}"
+	VFNAME="${VFNAME//_VFIDX_/$VFIDX}"
 }
 
 function tweakVFMAC()
@@ -90,22 +91,26 @@ fi
 INTERFACES=(${SP_IFACE//,/ })
 
 PFNAME="$1"
+VFID=0
 
 if [ -d "/sys/class/net/${PFNAME}/device/virtfn0/net" ]; then
 	PHYS_PORT_ID=$(</sys/class/net/${PFNAME}/phys_port_id)
-	for VFID in {0..63}; do
-		if [ -L "/sys/class/net/${PFNAME}/device/virtfn${VFID}" ]; then
-			if [ -d "/sys/class/net/${PFNAME}/device/virtfn${VFID}/net" ]; then
-				for phys in $(cd "/sys/class/net/${PFNAME}/device/virtfn${VFID}/net" && grep -l $PHYS_PORT_ID */phys_port_id 2>/dev/null); do
+	for VFIDX in {0..63}; do
+		if [ -L "/sys/class/net/${PFNAME}/device/virtfn${VFIDX}" ]; then
+			if [ -d "/sys/class/net/${PFNAME}/device/virtfn${VFIDX}/net" ]; then
+				for phys in $(cd "/sys/class/net/${PFNAME}/device/virtfn${VFIDX}/net" && grep -l $PHYS_PORT_ID */phys_port_id 2>/dev/null); do
 					VFOLD="${phys%/*}"
 					VFMAC="$(</sys/class/net/${VFOLD}/address)"
 					createVFNAME
 					tweakVFMAC
+					if [ "$DEBUG" = "yes" ]; then
+						splog "$PFNAME>>>$PHYS_PORT_ID VFIDX:$VFIDX VFID:$VFID VFOLD:$VFOLD VFNAME:$VFNAME VFOLDMAC:$VFOLDMAC VFMAC:$VFMAC"
+					fi
 					eval "VFVLAN=\${${VFNAME}_VLAN}"
-					ip link set "$PFNAME" vf "$VFID" mac ${VFMAC}${VFVLAN:+ vlan $VFVLAN} #&>/dev/null
+					ip link set "$PFNAME" vf "$VFIDX" mac ${VFMAC}${VFVLAN:+ vlan $VFVLAN}
 					if [ -n "$VFRENAME" ] && [ "$VFOLD" != "$VFNAME" ]; then
-						ip link set "$VFOLD" down && \
-						ip link set "$VFOLD" name "${VFNAME}" && \
+						ip link set "$VFOLD" down
+						ip link set "$VFOLD" name "${VFNAME}"
 						if [ "$VFOLDMAC" != "$VFMAC" ]; then
 							ip link set "$VFNAME" address "$VFMAC"
 							if [ $? -ne 0 ]; then
@@ -119,6 +124,7 @@ if [ -d "/sys/class/net/${PFNAME}/device/virtfn0/net" ]; then
 					else
 						splog "$VFOLD MAC ${VFMAC}${VFVLAN:+ VLAN $VFVLAN}"
 					fi
+					VFID=$((VFID+1))
 				done
 			fi
 		else

@@ -76,7 +76,8 @@ Rename the VF interfaces using the following tmplate. (set to empty string to di
 **VFNAME_TEMPLATE**
 *Default*: VFNAME\_TEMPLATE="\_PFNAME__vf_VFID_"
 \_PFNAME_ - name of the primary interface
-\_VFID_ - ID of the VF
+\_VFID_ - sequentional ID of the VF
+\_VFIDX_ - the VF id associated in the driver
 For example the if there are 2 VF on eth2, their names will be ***eth2_vf0*** and ***eth2_vf1***
 
 **VF_UP_AFTER_RENAME**
@@ -96,6 +97,9 @@ eth2_vf1_VLAN=42
 When used with combination with StorPool the VF interface MAC address will be changed to follwing template
 
 *02:42:<sp_net_idx>:<vf_idx>:<SP_OURID_high_bits>:<SP_OURID_low_bits>*
+
+### Debugging
+To enable additional logging to syslog unkoment/define `DEBUG=yes` in the /etc/mlx4vf-helper.conf
 
 
 # Copyright
